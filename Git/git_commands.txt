@@ -1,0 +1,47 @@
+git config --global user.name <"user_name">
+
+git config --global user.email <"user_email">
+
+git init : Creates a new Git repository
+
+git status
+
+git add <file_name.ext>
+
+## STAGING ENV is a kinda env which will make such that : before pushing to repo it will be send to STAGING ENV
+## commit makes it to STAGING ENV.
+
+git commit -m "<commit>"
+
+git branch : shows the main branch
+
+git branch -M main
+
+git remote add origin <"git-repo"> : specific git repo to commit and push
+
+git remote -v : shows fetch form local anything we have commited
+
+git push origin main : push from origin to main
+
+git restore <"file-name">
+
+git add . : instead of writing names of each file and add, just use . and this will add all the files at once
+
+git clone <repo-name> 
+
+git reset <file-name> : unstage a file while retaining the changes in working directory, so now it becomes untracked now
+
+git diff : diff of what is changed but not staged
+
+git diff --staged : dff of what is staged but not yet committed
+
+git branch <new_branch_at_current_commit>
+
+git checkout <branch-name>
+
+#### To MERGE:
+  git checkout main
+  git merge <branch-name>
+  git push origin main
+
+git log : show logs
