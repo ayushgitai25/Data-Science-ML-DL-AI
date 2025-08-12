@@ -1,4 +1,4 @@
-Data Science - ML - DL - AI
+# Data Science - ML - DL - AI
 
 ## Steps to push files in the repo:
 
@@ -9,3 +9,6 @@ Data Science - ML - DL - AI
 ### git remote add origin https://github.com/ayushgitai25/Data-Science-ML-DL-AI.git
 ### git branch -M main
 ### git push -u origin main
+
+### git push -u origin main : It tells Git:
+#### "Hey, from now on, my local branch main should track the remote branch main on origin."
