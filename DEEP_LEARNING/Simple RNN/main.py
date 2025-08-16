@@ -40,12 +40,24 @@ if st.button("🔍 Analyze Sentiment"):
     else:
         sentiment, score = predict_sentiment(review)
 
-        st.subheader("Result")
-        st.success(f"**Sentiment:** {sentiment}")
-        st.info(f"**Confidence:** {score*100:.2f}%")
-
-        # Optional extra styling with colored boxes
+        # Unified colored answer box
         if sentiment.startswith("Positive"):
-            st.markdown("<div style='background-color:#d4edda;padding:15px;border-radius:10px;'>😊 This review is Positive!</div>", unsafe_allow_html=True)
+            st.markdown(
+                f"""
+                <div style='background-color:#d4edda;padding:20px;border-radius:12px;'>
+                    <h4>😊 This review is Positive!</h4>
+                    <p><b>Sentiment:</b> {sentiment}</p>
+                    <p><b>Confidence:</b> {score*100:.2f}%</p>
+                </div>
+                """, unsafe_allow_html=True
+            )
         else:
-            st.markdown("<div style='background-color:#f8d7da;padding:15px;border-radius:10px;'>😞 This review is Negative.</div>", unsafe_allow_html=True)
+            st.markdown(
+                f"""
+                <div style='background-color:#f8d7da;padding:20px;border-radius:12px;'>
+                    <h4>😞 This review is Negative.</h4>
+                    <p><b>Sentiment:</b> {sentiment}</p>
+                    <p><b>Confidence:</b> {score*100:.2f}%</p>
+                </div>
+                """, unsafe_allow_html=True
+            )
