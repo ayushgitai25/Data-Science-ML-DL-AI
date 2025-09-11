@@ -1,0 +1,7 @@
+/.env
+/.venv
+# Ignore Chroma DB files
+chroma_db/
+
+# Ignore FAISS index files
+faiss-index/

@@ -1,0 +1,22 @@
+langchain
+langchain-community
+ipykernel
+python-dotenv
+pypdf ## for PDF Based Loader
+bs4 ## for Web Based Loader
+arxiv
+PyMuPDF ## for Arxiv Loader
+wikipedia
+
+langchain-text-splitters
+
+langchain-openai  ## Paid OpenAI
+langchain-google-genai ## Gemini Free one
+
+chromadb ## vector store
+langchain_chroma
+
+sentence_transformers ## for Hugging Face
+langchain_huggingface
+
+faiss-cpu ## for vectorstore
