@@ -13,6 +13,8 @@ langchain-text-splitters
 langchain-openai  ## Paid OpenAI
 langchain-google-genai ## Gemini Free one
 langchain-ollama ## Ollama Open Source
+langchain-groq ## Groq Open Source
+langchain-core ## For HumanMessage, SystemMessage
 
 chromadb ## vector store
 langchain_chroma
