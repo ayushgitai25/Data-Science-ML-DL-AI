@@ -20,3 +20,5 @@ sentence_transformers ## for Hugging Face
 langchain_huggingface
 
 faiss-cpu ## for vectorstore
+
+beautifulsoup4
