@@ -12,6 +12,7 @@ langchain-text-splitters
 
 langchain-openai  ## Paid OpenAI
 langchain-google-genai ## Gemini Free one
+langchain-ollama ## Ollama Open Source
 
 chromadb ## vector store
 langchain_chroma
@@ -22,3 +23,5 @@ langchain_huggingface
 faiss-cpu ## for vectorstore
 
 beautifulsoup4
+
+streamlit
