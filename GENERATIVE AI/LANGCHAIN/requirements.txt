@@ -27,3 +27,7 @@ faiss-cpu ## for vectorstore
 beautifulsoup4
 
 streamlit
+
+fastapi==0.110.0 ## for LangServe
+langserve[all]
+pydantic==2.7.1
