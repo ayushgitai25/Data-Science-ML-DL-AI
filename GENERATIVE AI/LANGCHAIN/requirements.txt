@@ -21,6 +21,7 @@ langchain_chroma
 
 sentence_transformers ## for Hugging Face
 langchain_huggingface
+huggingface_hub[hf_xet] ## for embeddings using Large HG Models
 
 faiss-cpu ## for vectorstore
 
