@@ -44,6 +44,7 @@ from dotenv import load_dotenv
 load_dotenv()
 os.environ['GROQ_API_KEY'] = os.getenv('GROQ_API_KEY')
 os.environ['GOOGLE_API_KEY'] = os.getenv('GOOGLE_API_KEY')
+os.environ['HF_TOKEN'] = os.getenv('HF_TOKEN')
 os.environ['LANGCHAIN_API_KEY'] = os.getenv('LANGCHAIN_API_KEY')
 os.environ['LANGSMITH_TRACING_V2'] = "true"
 os.environ['LANGCHAIN_PROJECT'] = "History-Aware RAG with Groq + FAISS"
