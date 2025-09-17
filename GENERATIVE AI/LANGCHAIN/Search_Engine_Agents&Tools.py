@@ -27,7 +27,7 @@ duckDuckGoSearch = DuckDuckGoSearchRun(name="Search")
 tools = [arxiv, wiki, duckDuckGoSearch]
 
 # ------------------ LLM & AGENT ------------------
-llm = ChatGroq(model="qwen/qwen3-32b", streaming=True)
+llm = ChatGroq(model="deepseek-r1-distill-llama-70b", streaming=True)
 
 prompt = hub.pull("hwchase17/openai-functions-agent")
 
