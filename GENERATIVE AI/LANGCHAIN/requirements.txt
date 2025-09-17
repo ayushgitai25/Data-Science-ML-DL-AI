@@ -32,3 +32,6 @@ streamlit
 fastapi==0.110.0 ## for LangServe
 langserve[all]
 pydantic==2.7.1
+
+arxiv  ## for tools
+duckduckgo-search
