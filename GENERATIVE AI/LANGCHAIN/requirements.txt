@@ -35,3 +35,5 @@ pydantic==2.7.1
 
 arxiv  ## for tools
 duckduckgo-search
+
+pymysql ## for SQL Database
