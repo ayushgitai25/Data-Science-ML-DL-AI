@@ -4,31 +4,25 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 
-
 # Import LangChain components for database interaction
 from langchain_community.utilities import SQLDatabase
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 
-
 # Load environment variables from .env file (for API keys)
 load_dotenv()
-
 
 # =============================================================================
 # CONFIGURATION AND CONSTANTS
 # =============================================================================
 
-
 # Constants for database selection options
 LOCALDB = "Use local SQLite database"
 MYSQL = "Connect to MySQL database"
 
-
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
-
 
 def initialize_session_state():
     """
@@ -55,7 +49,6 @@ def initialize_session_state():
     if "message_count" not in st.session_state:
         st.session_state.message_count = 0
 
-
 def inspect_database_schema(db_uri):
     """
     Inspect and return database tables and their columns using SQLAlchemy.
@@ -74,7 +67,6 @@ def inspect_database_schema(db_uri):
     except Exception as e:
         st.error(f"Error inspecting database schema: {e}")
         return {}
-
 
 def generate_sql_query(user_question, schema_info, db_uri):
     """
@@ -150,7 +142,6 @@ MySQL Syntax Examples:
         st.error(f"Error generating SQL query: {e}")
         return None
 
-
 def execute_query_and_interpret(user_question, db_uri, schema_info):
     """
     Execute SQL query and interpret results using LLM to provide natural language response.
@@ -197,7 +188,6 @@ def execute_query_and_interpret(user_question, db_uri, schema_info):
         error_msg = f"Error executing query: {str(e)}"
         return error_msg, sql_query if 'sql_query' in locals() else None, None
 
-
 def add_message_to_chat(role, content, sql_query=None, raw_results=None):
     """
     Add a message to the chat history with duplicate prevention.
@@ -223,7 +213,6 @@ def add_message_to_chat(role, content, sql_query=None, raw_results=None):
     st.session_state.messages.append(message)
     st.session_state.message_count += 1
 
-
 def display_chat_message(message):
     """
     Display a single chat message with proper formatting.
@@ -244,7 +233,6 @@ def display_chat_message(message):
             if message.get("raw_results"):
                 with st.expander("📊 Raw Database Results"):
                     st.code(message["raw_results"])
-
 
 def process_query(query_text):
     """
@@ -271,11 +259,9 @@ def process_query(query_text):
     # Add assistant response to chat history
     add_message_to_chat("assistant", answer, sql_query, raw_results)
 
-
 # =============================================================================
 # SIDEBAR CONFIGURATION
 # =============================================================================
-
 
 def setup_sidebar():
     """
@@ -396,11 +382,9 @@ def setup_sidebar():
     
     return db_uri
 
-
 # =============================================================================
 # MAIN APPLICATION
 # =============================================================================
-
 
 def main():
     """
@@ -414,7 +398,7 @@ def main():
         initial_sidebar_state="expanded"
     )
     
-    # ☀️ COMPLETE LIGHT THEME CSS WITH DARK TEXT ON LIGHT BACKGROUNDS
+    # ☀️ COMPLETE LIGHT THEME CSS WITH ENHANCED CHAT MESSAGE COLORS
     st.markdown("""
     <style>
         /* Import Google Fonts */
@@ -435,6 +419,10 @@ def main():
             --error-color: #DC2626;
             --border-color: #CBD5E1;
             --hover-bg: #F1F5F9;
+            --user-bg: #EBF8FF;
+            --user-border: #3B82F6;
+            --assistant-bg: #F0FDF4;
+            --assistant-border: #10B981;
         }
         
         /* Main app styling */
@@ -748,13 +736,65 @@ def main():
             border-radius: 8px !important;
         }
         
-        /* Chat messages */
+        /* ========== ENHANCED CHAT MESSAGE STYLING WITH DIFFERENT COLORS ========== */
+        
+        /* Base chat message styling */
         .stChatMessage {
-            background: rgba(248, 250, 252, 0.8) !important;
-            border: 1px solid var(--border-color) !important;
             border-radius: 12px !important;
             margin-bottom: 1rem !important;
             backdrop-filter: blur(5px) !important;
+            padding: 1rem !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        /* User (Human) Messages - Light Blue Theme */
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+            background: linear-gradient(135deg, var(--user-bg) 0%, #DBEAFE 100%) !important;
+            border: 1px solid #93C5FD !important;
+            border-left: 4px solid var(--user-border) !important;
+        }
+        
+        /* Assistant (AI) Messages - Light Green Theme */  
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
+            background: linear-gradient(135deg, var(--assistant-bg) 0%, #DCFCE7 100%) !important;
+            border: 1px solid #86EFAC !important;
+            border-left: 4px solid var(--assistant-border) !important;
+        }
+        
+        /* Chat message hover effects */
+        .stChatMessage:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        /* Chat message content */
+        [data-testid="stChatMessageContent"] {
+            color: var(--text-primary) !important;
+            font-size: 0.95rem !important;
+            line-height: 1.6 !important;
+        }
+        
+        [data-testid="stChatMessageContent"] p {
+            color: var(--text-primary) !important;
+            margin: 0.5rem 0 !important;
+        }
+        
+        /* Avatar customization */
+        [data-testid="stChatMessageAvatarUser"] {
+            background: linear-gradient(135deg, var(--user-border) 0%, #1D4ED8 100%) !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border: 2px solid white !important;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+        }
+        
+        [data-testid="stChatMessageAvatarAssistant"] {
+            background: linear-gradient(135deg, var(--assistant-border) 0%, #059669 100%) !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border: 2px solid white !important;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
         }
         
         /* Chat input */
@@ -890,8 +930,6 @@ def main():
     if prompt := st.chat_input("Ask a question about your database..."):
         process_query(prompt)
         st.rerun()
-
-
 
 if __name__ == "__main__":
     main()
