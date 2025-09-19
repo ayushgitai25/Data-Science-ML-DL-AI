@@ -1,3 +1,49 @@
+"""
+SQL DATABASE CHAT AGENT - COMPLETE WORKFLOW STEPS:
+
+STEP 1: ENVIRONMENT & CONFIGURATION SETUP
+    1.1. Load environment variables (.env file) for API keys
+    1.2. Import required libraries (Streamlit, SQLAlchemy, LangChain)
+    1.3. Set page configuration and apply light theme CSS styling
+
+STEP 2: SESSION STATE INITIALIZATION  
+    2.1. Initialize chat history storage (messages array)
+    2.2. Set up database connection status tracking
+    2.3. Store database URI and schema information
+    2.4. Initialize query processing state management
+
+STEP 3: DATABASE CONNECTION & INSPECTION
+    3.1. Handle database type selection (SQLite or MySQL)
+    3.2. Configure connection parameters based on user input
+    3.3. Establish database connection using SQLAlchemy
+    3.4. Inspect database schema to extract table and column information
+    3.5. Store schema metadata in session state for query generation
+
+STEP 4: SIDEBAR SETUP & UI CONFIGURATION
+    4.1. Create database configuration interface
+    4.2. Display database schema information in expandable sections
+    4.3. Show connection status indicators
+    4.4. Provide example query buttons for quick testing
+    4.5. Add chat history management controls
+
+STEP 5: NATURAL LANGUAGE TO SQL CONVERSION
+    5.1. Accept user question in natural language
+    5.2. Use LLM (Groq) to analyze question and database schema
+    5.3. Generate appropriate SQL query based on database type (SQLite/MySQL)
+    5.4. Apply database-specific syntax and best practices
+
+STEP 6: QUERY EXECUTION & RESULTS HANDLING  
+    6.1. Execute generated SQL query against the database
+    6.2. Capture and format raw query results
+    6.3. Handle query errors and edge cases
+    6.4. Store execution metadata for display
+
+STEP 7: RESULT INTERPRETATION & RESPONSE GENERATION
+    7.1. Use LLM to interpret raw SQL results
+    7.2. Convert technical results into natural language response
+    7.3. Provide context-aware explanations
+    7.4. Format response for user-friendly presentation
+"""
 import streamlit as st
 from sqlalchemy import create_engine, inspect
 import os
