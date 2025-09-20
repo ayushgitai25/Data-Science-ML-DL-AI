@@ -4,46 +4,55 @@ SQL DATABASE CHAT AGENT - COMPLETE WORKFLOW STEPS:
 STEP 1: ENVIRONMENT & CONFIGURATION SETUP
     1.1. Load environment variables (.env file) for API keys
     1.2. Import required libraries (Streamlit, SQLAlchemy, LangChain)
-    1.3. Set page configuration and apply light theme CSS styling
+    1.3. Set page configuration and apply beautiful gradient-based dark+light theme CSS styling
 
 STEP 2: SESSION STATE INITIALIZATION  
     2.1. Initialize chat history storage (messages array)
     2.2. Set up database connection status tracking
     2.3. Store database URI and schema information
     2.4. Initialize query processing state management
+    2.5. Initialize AI model selection state
 
-STEP 3: DATABASE CONNECTION & INSPECTION
-    3.1. Handle database type selection (SQLite or MySQL)
-    3.2. Configure connection parameters based on user input
-    3.3. Establish database connection using SQLAlchemy
-    3.4. Inspect database schema to extract table and column information
-    3.5. Store schema metadata in session state for query generation
+STEP 3: AI MODEL CONFIGURATION & SELECTION
+    3.1. Define available Groq models with specifications
+    3.2. Provide model selection interface in sidebar
+    3.3. Store selected model in session state
+    3.4. Configure LLM with user-selected model
 
-STEP 4: SIDEBAR SETUP & UI CONFIGURATION
-    4.1. Create database configuration interface
-    4.2. Display database schema information in expandable sections
-    4.3. Show connection status indicators
-    4.4. Provide example query buttons for quick testing
-    4.5. Add chat history management controls
+STEP 4: DATABASE CONNECTION & INSPECTION
+    4.1. Handle database type selection (SQLite or MySQL)
+    4.2. Configure connection parameters based on user input
+    4.3. Establish database connection using SQLAlchemy
+    4.4. Inspect database schema to extract table and column information
+    4.5. Store schema metadata in session state for query generation
 
-STEP 5: NATURAL LANGUAGE TO SQL CONVERSION
-    5.1. Accept user question in natural language
-    5.2. Use LLM (Groq) to analyze question and database schema
-    5.3. Generate appropriate SQL query based on database type (SQLite/MySQL)
-    5.4. Apply database-specific syntax and best practices
+STEP 5: SIDEBAR SETUP & UI CONFIGURATION
+    5.1. Create AI model selection interface
+    5.2. Create database configuration interface
+    5.3. Display database schema information in expandable sections
+    5.4. Show connection status indicators
+    5.5. Provide example query buttons for quick testing
+    5.6. Add chat history management controls
 
-STEP 6: QUERY EXECUTION & RESULTS HANDLING  
-    6.1. Execute generated SQL query against the database
-    6.2. Capture and format raw query results
-    6.3. Handle query errors and edge cases
-    6.4. Store execution metadata for display
+STEP 6: NATURAL LANGUAGE TO SQL CONVERSION
+    6.1. Accept user question in natural language
+    6.2. Use selected LLM (Groq) to analyze question and database schema
+    6.3. Generate appropriate SQL query based on database type (SQLite/MySQL)
+    6.4. Apply database-specific syntax and best practices
 
-STEP 7: RESULT INTERPRETATION & RESPONSE GENERATION
-    7.1. Use LLM to interpret raw SQL results
-    7.2. Convert technical results into natural language response
-    7.3. Provide context-aware explanations
-    7.4. Format response for user-friendly presentation
+STEP 7: QUERY EXECUTION & RESULTS HANDLING  
+    7.1. Execute generated SQL query against the database
+    7.2. Capture and format raw query results
+    7.3. Handle query errors and edge cases
+    7.4. Store execution metadata for display
+
+STEP 8: RESULT INTERPRETATION & RESPONSE GENERATION
+    8.1. Use selected LLM to interpret raw SQL results
+    8.2. Convert technical results into natural language response
+    8.3. Provide context-aware explanations
+    8.4. Format response for user-friendly presentation
 """
+
 import streamlit as st
 from sqlalchemy import create_engine, inspect
 import os
@@ -66,14 +75,77 @@ load_dotenv()
 LOCALDB = "Use local SQLite database"
 MYSQL = "Connect to MySQL database"
 
+# GROQ MODEL CONFIGURATION - Multiple AI models for flexible selection
+GROQ_MODELS = {
+    # Production Models (Recommended)
+    "🚀 Llama 3.1 8B (Fast)": {
+        "id": "llama-3.1-8b-instant", 
+        "context": "131K", 
+        "description": "Ultra-fast model, perfect for quick SQL generation",
+        "category": "production",
+        "speed": "⚡ Ultra-fast",
+        "cost": "💰 Low"
+    },
+    "🧠 Llama 3.3 70B (Smart)": {
+        "id": "llama-3.3-70b-versatile", 
+        "context": "131K", 
+        "description": "Best balance of speed and SQL accuracy",
+        "category": "production",
+        "speed": "⚡ Fast",
+        "cost": "💰 Medium"
+    },
+    "🔥 GPT-OSS 120B (Premium)": {
+        "id": "openai/gpt-oss-120b", 
+        "context": "131K", 
+        "description": "Premium model with superior SQL reasoning",
+        "category": "production",
+        "speed": "⚡ Fast",
+        "cost": "💰 High"
+    },
+    "⭐ GPT-OSS 20B (Balanced)": {
+        "id": "openai/gpt-oss-20b", 
+        "context": "131K", 
+        "description": "Balanced performance for database queries",
+        "category": "production",
+        "speed": "⚡ Very Fast",
+        "cost": "💰 Medium"
+    },
+    
+    # Preview Models (Advanced)
+    "🔬 Llama 4 Maverick 17B": {
+        "id": "meta-llama/llama-4-maverick-17b-128e-instruct", 
+        "context": "131K", 
+        "description": "Experimental next-gen SQL generation",
+        "category": "preview",
+        "speed": "⚡ Fast",
+        "cost": "💰 Medium"
+    },
+    "🌙 Kimi K2 Instruct": {
+        "id": "moonshotai/kimi-k2-instruct-0905", 
+        "context": "262K", 
+        "description": "Ultra-long context for complex database schemas",
+        "category": "preview",
+        "speed": "⚡ Medium",
+        "cost": "💰 High"
+    },
+    "🤖 Qwen3 32B": {
+        "id": "qwen/qwen3-32b", 
+        "context": "131K", 
+        "description": "Multilingual database query specialist",
+        "category": "preview",
+        "speed": "⚡ Fast",
+        "cost": "💰 Medium"
+    }
+}
+
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
 def initialize_session_state():
     """
-    Initialize Streamlit session state variables for maintaining chat history
-    and database connection status across app reruns.
+    Initialize Streamlit session state variables for maintaining chat history,
+    database connection status, and AI model selection across app reruns.
     """
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -94,10 +166,33 @@ def initialize_session_state():
     # Track message count to detect duplicates
     if "message_count" not in st.session_state:
         st.session_state.message_count = 0
+    
+    # AI Model selection state
+    if "selected_model" not in st.session_state:
+        st.session_state.selected_model = "🧠 Llama 3.3 70B (Smart)"  # Default to balanced model
+
+def get_selected_llm():
+    """
+    STEP 3.4: Initialize the selected Groq LLM model
+    - Gets user's selected model from session state
+    - Creates ChatGroq instance with temperature=0 (deterministic for SQL)
+    - Returns configured LLM ready for SQL generation and interpretation
+    """
+    model_config = GROQ_MODELS[st.session_state.selected_model]
+    return ChatGroq(
+        model=model_config["id"],
+        temperature=0,  # Deterministic output for consistent SQL generation
+        max_tokens=None,
+        timeout=None,
+        max_retries=2
+    )
 
 def inspect_database_schema(db_uri):
     """
-    Inspect and return database tables and their columns using SQLAlchemy.
+    STEP 4.4: Inspect and return database tables and their columns using SQLAlchemy.
+    - Connects to database using provided URI
+    - Extracts all table names and their column information
+    - Returns structured schema dictionary for SQL generation
     """
     try:
         engine = create_engine(db_uri)
@@ -116,10 +211,14 @@ def inspect_database_schema(db_uri):
 
 def generate_sql_query(user_question, schema_info, db_uri):
     """
-    Generate SQL query from natural language question using LLM with database-specific syntax.
+    STEP 6: Generate SQL query from natural language question using selected LLM
+    - Uses user-selected Groq model for SQL generation
+    - Applies database-specific syntax (SQLite vs MySQL)
+    - Incorporates database schema information
+    - Returns precise SQL query string
     """
     try:
-        llm = ChatGroq(model_name="openai/gpt-oss-120b", temperature=0)
+        llm = get_selected_llm()  # Use selected model
         
         # Determine database type from URI
         db_type = "SQLite" if "sqlite" in db_uri.lower() else "MySQL"
@@ -190,10 +289,14 @@ MySQL Syntax Examples:
 
 def execute_query_and_interpret(user_question, db_uri, schema_info):
     """
-    Execute SQL query and interpret results using LLM to provide natural language response.
+    STEP 7 & 8: Execute SQL query and interpret results using selected LLM
+    - Generates SQL using user question and schema
+    - Executes query against database
+    - Uses selected LLM to interpret results into natural language
+    - Returns formatted response with SQL and raw results
     """
     try:
-        sql_query = generate_sql_query(user_question, schema_info, db_uri)  # Pass db_uri
+        sql_query = generate_sql_query(user_question, schema_info, db_uri)
         
         if not sql_query:
             return "Sorry, I couldn't generate a SQL query for your question.", None, None
@@ -201,7 +304,7 @@ def execute_query_and_interpret(user_question, db_uri, schema_info):
         db = SQLDatabase.from_uri(db_uri)
         raw_results = db.run(sql_query)
         
-        llm = ChatGroq(model_name="openai/gpt-oss-120b", temperature=0)
+        llm = get_selected_llm()  # Use selected model for interpretation
         
         interpretation_prompt = ChatPromptTemplate.from_template(
             """You are a helpful database assistant. Given the user's question, the SQL query that was executed, 
@@ -254,14 +357,15 @@ def add_message_to_chat(role, content, sql_query=None, raw_results=None):
         "content": content,
         "timestamp": datetime.now().strftime("%H:%M:%S"),
         "sql_query": sql_query,
-        "raw_results": raw_results
+        "raw_results": raw_results,
+        "model_used": st.session_state.selected_model if role == "assistant" else None
     }
     st.session_state.messages.append(message)
     st.session_state.message_count += 1
 
 def display_chat_message(message):
     """
-    Display a single chat message with proper formatting.
+    Display a single chat message with proper formatting and model information.
     """
     if message["role"] == "user":
         with st.chat_message("user"):
@@ -270,10 +374,13 @@ def display_chat_message(message):
     else:
         with st.chat_message("assistant"):
             st.write(message["content"])
-            st.caption(f"Response at {message['timestamp']}")
+            
+            # Show which model was used for this response
+            model_used = message.get("model_used", "Unknown Model")
+            st.caption(f"Response at {message['timestamp']} • Model: {model_used}")
             
             if message.get("sql_query"):
-                with st.expander("🔍 View SQL Query"):
+                with st.expander("🔍 View Generated SQL Query"):
                     st.code(message["sql_query"], language="sql")
                     
             if message.get("raw_results"):
@@ -282,7 +389,7 @@ def display_chat_message(message):
 
 def process_query(query_text):
     """
-    Process a query with duplicate prevention.
+    Process a query with duplicate prevention and model tracking.
     """
     # Prevent processing the same query multiple times
     query_key = f"{query_text}_{datetime.now().strftime('%H:%M:%S')}"
@@ -311,9 +418,71 @@ def process_query(query_text):
 
 def setup_sidebar():
     """
-    Setup the sidebar with database configuration options and connection status.
+    STEP 5: Setup the sidebar with AI model selection, database configuration, 
+    and connection status display.
     """
-    st.sidebar.header("🗄️ Database Configuration")
+    # STEP 5.1: AI Model Selection Interface
+    st.sidebar.markdown("""
+    <div class="sidebar-header">
+        <h2 style="margin: 0; font-family: 'Poppins', sans-serif; font-weight: 600;">🤖 AI Model Selection</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Group models by category
+    production_models = [k for k, v in GROQ_MODELS.items() if v['category'] == 'production']
+    preview_models = [k for k, v in GROQ_MODELS.items() if v['category'] == 'preview']
+    
+    st.sidebar.markdown("#### 🚀 **Production Models** (Recommended)")
+    for model_name in production_models:
+        model_info = GROQ_MODELS[model_name]
+        if st.sidebar.button(
+            f"{model_name}",
+            key=f"model_{model_name}",
+            help=f"{model_info['description']} • Context: {model_info['context']} • {model_info['speed']} • {model_info['cost']}",
+            use_container_width=True
+        ):
+            st.session_state.selected_model = model_name
+            st.rerun()
+        
+        # Show selection indicator
+        if st.session_state.selected_model == model_name:
+            st.sidebar.markdown(f'''
+            <div class="model-selection-indicator success">
+                ✅ <strong>Selected:</strong> {model_info['description']}<br>
+                <small>{model_info['speed']} • {model_info['cost']} • Context: {model_info['context']}</small>
+            </div>
+            ''', unsafe_allow_html=True)
+    
+    st.sidebar.markdown("#### 🔬 **Preview Models** (Experimental)")
+    with st.sidebar.expander("Show Preview Models", expanded=False):
+        for model_name in preview_models:
+            model_info = GROQ_MODELS[model_name]
+            if st.sidebar.button(
+                f"{model_name}",
+                key=f"model_preview_{model_name}",
+                help=f"{model_info['description']} • Context: {model_info['context']} • {model_info['speed']} • {model_info['cost']}",
+                use_container_width=True
+            ):
+                st.session_state.selected_model = model_name
+                st.rerun()
+            
+            # Show selection indicator for preview models
+            if st.session_state.selected_model == model_name:
+                st.sidebar.markdown(f'''
+                <div class="model-selection-indicator warning">
+                    ⚠️ <strong>Preview Selected:</strong> {model_info['description']}<br>
+                    <small>{model_info['speed']} • {model_info['cost']} • Context: {model_info['context']}</small>
+                </div>
+                ''', unsafe_allow_html=True)
+    
+    st.sidebar.markdown("---")
+    
+    # STEP 5.2: Database Configuration Interface
+    st.sidebar.markdown("""
+    <div class="sidebar-header" style="margin-top: 1.5rem;">
+        <h2 style="margin: 0; font-family: 'Poppins', sans-serif; font-weight: 600;">🗄️ Database Configuration</h2>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Database type selection
     db_choice = st.sidebar.radio(
@@ -354,7 +523,7 @@ def setup_sidebar():
             db_uri = f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}/{mysql_db}"
             st.sidebar.info("✅ MySQL connection configured")
     
-    # Display database schema if connected
+    # STEP 5.3: Display database schema if connected
     if db_uri:
         try:
             schema_info = inspect_database_schema(db_uri)
@@ -372,22 +541,22 @@ def setup_sidebar():
                 st.session_state.db_uri = db_uri
                 st.session_state.schema_info = schema_info
                 
-                st.sidebar.success("🟢 Database Connected")
+                st.sidebar.markdown('<div class="status-indicator success">🟢 Database Connected</div>', unsafe_allow_html=True)
                 
             else:
-                st.sidebar.warning("⚠️ No tables found in database")
+                st.sidebar.markdown('<div class="status-indicator warning">⚠️ No tables found in database</div>', unsafe_allow_html=True)
                 st.session_state.db_connected = False
                 
         except Exception as e:
-            st.sidebar.error(f"❌ Connection Error: {e}")
+            st.sidebar.markdown(f'<div class="status-indicator error">❌ Connection Error: {str(e)}</div>', unsafe_allow_html=True)
             st.session_state.db_connected = False
             db_uri = None
     
     else:
-        st.sidebar.info("📝 Please configure database connection")
+        st.sidebar.markdown('<div class="status-indicator info">📝 Please configure database connection</div>', unsafe_allow_html=True)
         st.session_state.db_connected = False
     
-    # Add clear chat history button
+    # STEP 5.6: Add clear chat history button
     st.sidebar.markdown("---")
     if st.sidebar.button("🗑️ Clear Chat History", help="Clear all chat messages"):
         st.session_state.messages = []
@@ -395,7 +564,7 @@ def setup_sidebar():
         st.session_state.last_processed_query = None
         st.rerun()
     
-    # Display example queries if database is connected
+    # STEP 5.5: Display example queries if database is connected
     if st.session_state.db_connected and st.session_state.schema_info:
         st.sidebar.subheader("💡 Example Queries")
         st.sidebar.write("*Click to execute immediately*")
@@ -434,7 +603,8 @@ def setup_sidebar():
 
 def main():
     """
-    Main application function that orchestrates the entire Streamlit app.
+    Main application function that orchestrates the entire Streamlit app
+    with corrected beautiful gradient backgrounds and PERFECT chat message text visibility.
     """
     
     st.set_page_config(
@@ -444,524 +614,806 @@ def main():
         initial_sidebar_state="expanded"
     )
     
-    # ☀️ COMPLETE LIGHT THEME CSS WITH ENHANCED CHAT MESSAGE COLORS
+    # CORRECTED BEAUTIFUL GRADIENT-BASED CSS WITH PERFECT CHAT MESSAGE TEXT VISIBILITY
     st.markdown("""
     <style>
         /* Import Google Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
         
-        /* Root variables for light theme */
+        /* Hide default streamlit styling */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        .stDeployButton {display:none;}
+        
+        /* Enable color-scheme support for system theme detection */
         :root {
-            --primary-bg: #FFFFFF;
-            --secondary-bg: #F8FAFC;
-            --tertiary-bg: #F1F5F9;
-            --accent-bg: #E2E8F0;
-            --text-primary: #1E293B;
-            --text-secondary: #475569;
-            --text-muted: #64748B;
-            --accent-color: #3B82F6;
-            --success-color: #059669;
-            --warning-color: #D97706;
-            --error-color: #DC2626;
-            --border-color: #CBD5E1;
-            --hover-bg: #F1F5F9;
-            --user-bg: #EBF8FF;
-            --user-border: #3B82F6;
-            --assistant-bg: #F0FDF4;
-            --assistant-border: #10B981;
+            color-scheme: light dark;
         }
         
-        /* Main app styling */
-        .stApp {
-            background: linear-gradient(135deg, var(--primary-bg) 0%, #F8FAFC 100%) !important;
-            color: var(--text-primary) !important;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        }
-        
-        /* Main content area */
-        .main .block-container {
-            background: rgba(255, 255, 255, 0.9) !important;
-            border-radius: 12px !important;
-            backdrop-filter: blur(10px) !important;
-            border: 1px solid var(--border-color) !important;
-            padding: 2rem !important;
-            margin-top: 1rem !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-        }
-        
-        /* Headers and text styling */
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--text-primary) !important;
-            font-weight: 600 !important;
-        }
-        
-        h1 {
-            background: linear-gradient(135deg, var(--accent-color), #1D4ED8) !important;
-            -webkit-background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-            background-clip: text !important;
-        }
-        
-        p, div, span {
-            color: var(--text-primary) !important;
-        }
-        
-        /* Sidebar styling */
+        /* WIDER SIDEBAR - 480px for model selection */
         section[data-testid="stSidebar"] {
-            width: 450px !important;
-            background: linear-gradient(180deg, var(--secondary-bg) 0%, var(--tertiary-bg) 100%) !important;
-            border-right: 1px solid var(--border-color) !important;
+            width: 480px !important;
+            min-width: 480px !important;
         }
         
-        .css-1d391kg {
-            width: 450px !important;
-            background: transparent !important;
+        section[data-testid="stSidebar"] > div:first-child {
+            width: 480px !important;
+            min-width: 480px !important;
         }
         
-        /* Sidebar content */
-        .sidebar .sidebar-content {
-            background: transparent !important;
-            padding: 1rem !important;
+        section[data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
+            width: 480px !important;
+            margin-left: 0px !important;
         }
         
-        /* Sidebar headers */
-        .sidebar h1, .sidebar h2, .sidebar h3 {
-            color: var(--text-primary) !important;
-            border-bottom: 2px solid var(--accent-color) !important;
-            padding-bottom: 0.5rem !important;
-            margin-bottom: 1rem !important;
+        section[data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
+            width: 480px !important;
+            margin-left: -480px !important;
         }
         
-        /* Input fields */
-        .stTextInput > div > div > input {
-            background: var(--primary-bg) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px !important;
-            font-family: 'Inter', sans-serif !important;
+        /* Adjust main content area to account for wider sidebar */
+        .main .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            max-width: none !important;
         }
         
-        .stTextInput > div > div > input:focus {
-            border-color: var(--accent-color) !important;
-            box-shadow: 0 0 0 1px var(--accent-color) !important;
+        /* LIGHT THEME STYLES (Default) */
+        .main-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #ffffff;
+            box-shadow: 0 10px 40px rgba(31, 38, 135, 0.4);
+            backdrop-filter: blur(10px);
         }
         
-        /* Password input */
-        input[type="password"] {
-            background: var(--primary-bg) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid var(--border-color) !important;
+        .main-header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 2.8rem;
+            margin: 0;
+            color: #ffffff !important;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            letter-spacing: -0.5px;
         }
         
-        /* ========== ENHANCED FILE UPLOADER STYLING ========== */
-        .stFileUploader {
-            background: var(--tertiary-bg) !important;
-            border: 2px dashed var(--border-color) !important;
-            border-radius: 12px !important;
-            padding: 1rem !important;
+        .main-header p {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 1.3rem;
+            margin: 1rem 0 0 0;
+            color: #ffffff !important;
+            opacity: 1;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
         }
         
-        .stFileUploader:hover {
-            border-color: var(--accent-color) !important;
-            background: rgba(59, 130, 246, 0.05) !important;
+        /* Step sections with enhanced styling - LIGHT THEME */
+        .step-container {
+            background: linear-gradient(145deg, #ffffff 0%, #f8faff 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid #e8ecf7;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.08);
+            position: relative;
+            overflow: hidden;
+            color: #0f172a;
         }
         
-        /* File uploader content */
-        .stFileUploader > div {
-            background: transparent !important;
+        .step-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
         }
         
-        /* Drag and drop zone */
-        .stFileUploader [data-testid="stFileUploaderDropzone"] {
-            background: var(--primary-bg) !important;
-            border: 2px dashed var(--border-color) !important;
-            border-radius: 8px !important;
-            color: var(--text-primary) !important;
-            padding: 2rem !important;
-            text-align: center !important;
-            transition: all 0.3s ease !important;
+        /* FIXED: Force dark text in step containers */
+        .step-container strong {
+            color: #0f172a !important;
+            font-weight: 700 !important;
         }
         
-        .stFileUploader [data-testid="stFileUploaderDropzone"]:hover {
-            border-color: var(--accent-color) !important;
-            background: rgba(59, 130, 246, 0.08) !important;
-            transform: scale(1.01) !important;
-        }
-        
-        /* File uploader text */
-        .stFileUploader label {
-            color: var(--text-primary) !important;
+        .step-container small {
+            color: #475569 !important;
             font-weight: 500 !important;
         }
         
-        /* File uploader button */
-        .stFileUploader button {
-            background: linear-gradient(135deg, var(--accent-color) 0%, #1D4ED8 100%) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 6px !important;
-            padding: 0.5rem 1rem !important;
-            font-weight: 500 !important;
-            margin-top: 0.5rem !important;
-            transition: all 0.3s ease !important;
+        /* Enhanced status indicators with gradients - LIGHT THEME */
+        .status-indicator {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
-        .stFileUploader button:hover {
-            background: linear-gradient(135deg, #1D4ED8 0%, var(--accent-color) 100%) !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+        .status-indicator.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
         }
         
-        /* File uploader instructions */
-        .stFileUploader small {
-            color: var(--text-muted) !important;
-            font-size: 0.8rem !important;
+        .status-indicator.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
         }
         
-        /* Uploaded file display */
-        .uploadedFile {
-            background: var(--tertiary-bg) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px !important;
-            color: var(--text-primary) !important;
-            padding: 0.5rem !important;
-            margin-top: 0.5rem !important;
+        .status-indicator.info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
         }
         
-        /* Radio buttons */
-        .stRadio > div {
-            background: var(--tertiary-bg) !important;
-            border-radius: 8px !important;
-            padding: 0.5rem !important;
-            border: 1px solid var(--border-color) !important;
+        .status-indicator.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
         }
         
-        .stRadio > div > label {
-            color: var(--text-primary) !important;
+        /* Model selection indicators - LIGHT THEME */
+        .model-selection-indicator {
+            padding: 0.8rem;
+            border-radius: 12px;
+            margin: 0.5rem 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
-        /* ========== LIGHT THEME BUTTONS WITH DARK TEXT ========== */
+        .model-selection-indicator.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .model-selection-indicator.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
+        /* Sidebar headers with gradients - LIGHT THEME */
+        .sidebar-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #ffffff !important;
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            color: #ffffff !important;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        /* Enhanced Buttons with gradients - LIGHT THEME */
         .stButton > button {
-            width: 100% !important;
-            text-align: left !important;
-            padding: 1rem !important;
-            border-radius: 10px !important;
-            border: 1px solid var(--border-color) !important;
-            background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%) !important;
-            color: var(--text-primary) !important;  /* Dark text for visibility */
-            font-size: 0.85rem !important;
-            font-weight: 600 !important;  /* Bold for better readability */
-            margin-bottom: 0.5rem !important;
-            white-space: normal !important;
-            height: auto !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 2rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            width: 100%;
+            min-height: 48px;
         }
         
         .stButton > button:hover {
-            background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%) !important;
-            border-color: var(--accent-color) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2) !important;
-            color: var(--text-primary) !important;  /* Keep dark text on hover */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a72e8 0%, #6d42a0 100%);
+            color: #ffffff !important;
         }
         
         .stButton > button:active {
-            transform: translateY(0px) !important;
-            background: #E2E8F0 !important;
-            color: var(--text-primary) !important;
+            transform: translateY(-1px);
         }
         
-        .stButton > button:focus {
-            outline: none !important;
-            border-color: var(--accent-color) !important;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
-            color: var(--text-primary) !important;
-        }
+        /* ========== CRITICAL FIX: CHAT MESSAGE TEXT VISIBILITY ========== */
         
-        .stButton > button:disabled {
-            color: var(--text-muted) !important;
-            background: #F8FAFC !important;
-        }
-        
-        /* Ensure ALL text inside buttons is dark */
-        .stButton button div {
-            color: var(--text-primary) !important;
-            font-weight: 600 !important;
-        }
-        
-        .stButton button p {
-            color: var(--text-primary) !important;
-            font-weight: 600 !important;
-        }
-        
-        .stButton button span {
-            color: var(--text-primary) !important;
-            font-weight: 600 !important;
-        }
-        
-        /* Force all sidebar buttons to use dark text on light background */
-        [data-testid="stSidebar"] .stButton > button {
-            background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid var(--border-color) !important;
-            font-weight: 600 !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button:hover {
-            background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%) !important;
-            border-color: var(--accent-color) !important;
-            color: var(--text-primary) !important; 
-        }
-        
-        /* Ensure text inside sidebar buttons is properly styled */
-        [data-testid="stSidebar"] .stButton button * {
-            color: var(--text-primary) !important;
-            font-weight: 600 !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton button div {
-            color: var(--text-primary) !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton button p {
-            color: var(--text-primary) !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton button span {
-            color: var(--text-primary) !important;
-        }
-        
-        /* Clear Chat History button special styling */
-        [data-testid="stSidebar"] .stButton > button[title*="Clear"] {
-            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%) !important;
-            color: var(--error-color) !important;
-            border-color: #FECACA !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button[title*="Clear"]:hover {
-            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%) !important;
-            color: var(--error-color) !important;
-        }
-        
-        /* Sidebar text and markdown */
-        [data-testid="stSidebar"] .stMarkdown {
-            color: var(--text-primary) !important;
-        }
-        
-        [data-testid="stSidebar"] .stText {
-            color: var(--text-primary) !important;
-        }
-        
-        /* Success/Info/Warning/Error messages */
-        .stSuccess {
-            background: rgba(16, 185, 129, 0.1) !important;
-            color: var(--success-color) !important;
-            border: 1px solid var(--success-color) !important;
-            border-radius: 8px !important;
-        }
-        
-        .stInfo {
-            background: rgba(59, 130, 246, 0.1) !important;
-            color: var(--accent-color) !important;
-            border: 1px solid var(--accent-color) !important;
-            border-radius: 8px !important;
-        }
-        
-        .stWarning {
-            background: rgba(217, 119, 6, 0.1) !important;
-            color: var(--warning-color) !important;
-            border: 1px solid var(--warning-color) !important;
-            border-radius: 8px !important;
-        }
-        
-        .stError {
-            background: rgba(220, 38, 38, 0.1) !important;
-            color: var(--error-color) !important;
-            border: 1px solid var(--error-color) !important;
-            border-radius: 8px !important;
-        }
-        
-        /* ========== ENHANCED CHAT MESSAGE STYLING WITH DIFFERENT COLORS ========== */
-        
-        /* Base chat message styling */
+        /* ENHANCED CHAT MESSAGE STYLING WITH PERFECT TEXT CONTRAST */
         .stChatMessage {
-            border-radius: 12px !important;
-            margin-bottom: 1rem !important;
-            backdrop-filter: blur(5px) !important;
-            padding: 1rem !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+            border-radius: 16px !important;
+            margin-bottom: 1.5rem !important;
+            backdrop-filter: blur(10px) !important;
+            padding: 1.5rem !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
             transition: all 0.3s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
         }
         
-        /* User (Human) Messages - Light Blue Theme */
+        /* User (Human) Messages - FIXED: Dark text on light blue background for maximum contrast */
         [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
-            background: linear-gradient(135deg, var(--user-bg) 0%, #DBEAFE 100%) !important;
-            border: 1px solid #93C5FD !important;
-            border-left: 4px solid var(--user-border) !important;
+            background: linear-gradient(135deg, #ebf8ff 0%, #dbeafe 100%) !important;
+            border: 1px solid #93c5fd !important;
+            border-left: 4px solid #3b82f6 !important;
+            color: #0f172a !important;  /* FIXED: Very dark text for maximum contrast */
         }
         
-        /* Assistant (AI) Messages - Light Green Theme */  
+        /* FIXED: Force dark text in ALL content within user messages */
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) * {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) p {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) div {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] * {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        }
+        
+        /* Assistant (AI) Messages - FIXED: Dark text on light green background for maximum contrast */
         [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
-            background: linear-gradient(135deg, var(--assistant-bg) 0%, #DCFCE7 100%) !important;
-            border: 1px solid #86EFAC !important;
-            border-left: 4px solid var(--assistant-border) !important;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+            border: 1px solid #86efac !important;
+            border-left: 4px solid #10b981 !important;
+            color: #0f172a !important;  /* FIXED: Very dark text for maximum contrast */
+        }
+        
+        /* FIXED: Force dark text in ALL content within assistant messages */
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) * {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) p {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) div {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageContent"] {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageContent"] * {
+            color: #0f172a !important;
+        }
+        
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"])::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #10b981, #059669);
         }
         
         /* Chat message hover effects */
         .stChatMessage:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            transform: translateY(-4px) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
         }
         
-        /* Chat message content */
-        [data-testid="stChatMessageContent"] {
-            color: var(--text-primary) !important;
-            font-size: 0.95rem !important;
-            line-height: 1.6 !important;
-        }
-        
-        [data-testid="stChatMessageContent"] p {
-            color: var(--text-primary) !important;
-            margin: 0.5rem 0 !important;
-        }
-        
-        /* Avatar customization */
+        /* Avatar customization with gradients */
         [data-testid="stChatMessageAvatarUser"] {
-            background: linear-gradient(135deg, var(--user-border) 0%, #1D4ED8 100%) !important;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
             color: white !important;
             font-weight: 600 !important;
-            border: 2px solid white !important;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+            border: 3px solid white !important;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important;
         }
         
         [data-testid="stChatMessageAvatarAssistant"] {
-            background: linear-gradient(135deg, var(--assistant-border) 0%, #059669 100%) !important;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
             color: white !important;
             font-weight: 600 !important;
-            border: 2px solid white !important;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+            border: 3px solid white !important;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important;
         }
         
-        /* Chat input */
+        /* DARK THEME ADAPTATIONS - WITH FIXED CHAT MESSAGE TEXT */
+        @media (prefers-color-scheme: dark) {
+            /* Main header - Better contrast for dark theme */
+            .main-header {
+                background: linear-gradient(135deg, #4c1d95 0%, #6366f1 100%);
+                box-shadow: 0 10px 40px rgba(76, 29, 149, 0.4);
+                color: #ffffff !important;
+            }
+            
+            .main-header h1 {
+                color: #ffffff !important;
+                text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+            }
+            
+            .main-header p {
+                color: #ffffff !important;
+                text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+            }
+            
+            /* Step containers - Better contrast for readability */
+            .step-container {
+                background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+                border-color: #374151;
+                color: #f9fafb !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }
+            
+            .step-container::before {
+                background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            }
+            
+            /* FIXED: Force light text in dark step containers */
+            .step-container strong {
+                color: #f9fafb !important;
+                font-weight: 700 !important;
+            }
+            
+            .step-container small {
+                color: #d1d5db !important;
+                font-weight: 500 !important;
+            }
+            
+            /* Sidebar headers - Improved contrast */
+            .sidebar-header {
+                background: linear-gradient(135deg, #4c1d95, #6366f1);
+                box-shadow: 0 8px 25px rgba(76, 29, 149, 0.4);
+                color: #ffffff !important;
+            }
+            
+            .sidebar-header h2 {
+                color: #ffffff !important;
+                text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            }
+            
+            /* Buttons - Better visibility in dark mode */
+            .stButton > button {
+                background: linear-gradient(135deg, #4c1d95 0%, #6366f1 100%);
+                box-shadow: 0 6px 20px rgba(76, 29, 149, 0.4);
+                color: #ffffff !important;
+            }
+            
+            .stButton > button:hover {
+                background: linear-gradient(135deg, #3730a3 0%, #4338ca 100%);
+                box-shadow: 0 8px 25px rgba(76, 29, 149, 0.5);
+                color: #ffffff !important;
+            }
+            
+            /* DARK THEME CHAT MESSAGES - FIXED TEXT VISIBILITY */
+            
+            /* User messages in dark theme - Light text on dark blue */
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+                background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important;
+                border-color: #3b82f6 !important;
+                color: #f0f9ff !important;  /* FIXED: Light text for dark background */
+            }
+            
+            /* FIXED: Force light text in ALL content within user messages (dark theme) */
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) * {
+                color: #f0f9ff !important;
+            }
+            
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) p {
+                color: #f0f9ff !important;
+            }
+            
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) div {
+                color: #f0f9ff !important;
+            }
+            
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+                color: #f0f9ff !important;
+            }
+            
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] * {
+                color: #f0f9ff !important;
+            }
+            
+            /* Assistant messages in dark theme - Light text on dark green */
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
+                background: linear-gradient(135deg, #064e3b 0%, #047857 100%) !important;
+                border-color: #10b981 !important;
+                color: #ecfdf5 !important;  /* FIXED: Light text for dark background */
+            }
+            
+            /* FIXED: Force light text in ALL content within assistant messages (dark theme) */
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) * {
+                color: #ecfdf5 !important;
+            }
+            
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) p {
+                color: #ecfdf5 !important;
+            }
+            
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) div {
+                color: #ecfdf5 !important;
+            }
+            
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageContent"] {
+                color: #ecfdf5 !important;
+            }
+            
+            [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageContent"] * {
+                color: #ecfdf5 !important;
+            }
+            
+            /* Other dark theme elements */
+            .stFileUploader > div {
+                background: linear-gradient(145deg, #1f2937, #111827) !important;
+                border-color: #6366f1 !important;
+                color: #f9fafb !important;
+            }
+            
+            .stFileUploader > div:hover {
+                background: linear-gradient(145deg, #374151, #1f2937) !important;
+                border-color: #8b5cf6 !important;
+            }
+            
+            .stTextInput > div > div > input {
+                background: linear-gradient(145deg, #1f2937, #111827) !important;
+                color: #f9fafb !important;
+                border-color: #374151 !important;
+            }
+            
+            .stTextInput > div > div > input:focus {
+                border-color: #6366f1 !important;
+                box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2) !important;
+            }
+            
+            .stRadio > div {
+                background: linear-gradient(145deg, #1f2937, #111827) !important;
+                border-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+            
+            .stChatInput > div {
+                background: linear-gradient(145deg, #1f2937, #111827) !important;
+                border-color: #374151 !important;
+            }
+            
+            .stChatInput input {
+                color: #f9fafb !important;
+            }
+            
+            .stChatInput input::placeholder {
+                color: #9ca3af !important;
+            }
+            
+            .streamlit-expanderHeader {
+                background: linear-gradient(145deg, #1f2937, #111827) !important;
+                color: #f9fafb !important;
+                border-color: #374151 !important;
+            }
+            
+            .streamlit-expanderHeader:hover {
+                background: linear-gradient(145deg, #374151, #1f2937) !important;
+                border-color: #6366f1 !important;
+            }
+            
+            .streamlit-expanderContent {
+                background: linear-gradient(145deg, #111827, #1f2937) !important;
+                border-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+            
+            .stCode {
+                background: linear-gradient(145deg, #111827, #1f2937) !important;
+                color: #f9fafb !important;
+                border-color: #374151 !important;
+            }
+            
+            /* Success/Info/Warning/Error messages - Dark theme contrast */
+            .stSuccess {
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.15)) !important;
+                color: #10b981 !important;
+                border-color: #10b981 !important;
+            }
+            
+            .stInfo {
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(67, 56, 202, 0.15)) !important;
+                color: #6366f1 !important;
+                border-color: #6366f1 !important;
+            }
+            
+            .stWarning {
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.15)) !important;
+                color: #f59e0b !important;
+                border-color: #f59e0b !important;
+            }
+            
+            .stError {
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.15)) !important;
+                color: #ef4444 !important;
+                border-color: #ef4444 !important;
+            }
+        }
+        
+        /* Chat input with gradient styling - LIGHT THEME */
         .stChatInput > div {
-            background: var(--primary-bg) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 12px !important;
+            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
+            border: 2px solid #e8ecf7 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
         }
         
         .stChatInput input {
             background: transparent !important;
-            color: var(--text-primary) !important;
+            color: #1e293b !important;
             font-size: 1rem !important;
+            font-family: 'Inter', sans-serif !important;
         }
         
         .stChatInput input::placeholder {
-            color: var(--text-muted) !important;
+            color: #64748b !important;
         }
         
-        /* Expanders */
+        /* File uploader with gradient styling - LIGHT THEME */
+        .stFileUploader > div {
+            background: linear-gradient(145deg, #f8faff, #ffffff) !important;
+            border: 3px dashed #667eea !important;
+            border-radius: 16px !important;
+            padding: 3rem 2rem !important;
+            text-align: center !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+            color: #1e293b !important;
+        }
+        
+        .stFileUploader > div:hover {
+            border-color: #764ba2 !important;
+            background: linear-gradient(145deg, #f0f3ff, #f8faff) !important;
+            transform: scale(1.02) !important;
+        }
+        
+        /* Text input enhancement - LIGHT THEME */
+        .stTextInput > div > div > input {
+            border-radius: 12px;
+            border: 2px solid #e8ecf7;
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #ffffff, #f8faff);
+            color: #1e293b;
+        }
+        
+        .stTextInput > div > div > input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            background: #ffffff;
+        }
+        
+        .stTextInput > div > div > input::placeholder {
+            color: #64748b;
+        }
+        
+        /* Radio button enhancement - LIGHT THEME */
+        .stRadio > div {
+            background: linear-gradient(145deg, #f8faff, #ffffff);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid #e8ecf7;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            color: #1e293b;
+        }
+        
+        /* Success/Info/Warning/Error messages with gradients - LIGHT THEME */
+        .stSuccess {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1)) !important;
+            color: #059669 !important;
+            border: 1px solid #10b981 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1) !important;
+            padding: 1rem !important;
+        }
+        
+        .stInfo {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(29, 78, 216, 0.1)) !important;
+            color: #2563eb !important;
+            border: 1px solid #3b82f6 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1) !important;
+            padding: 1rem !important;
+        }
+        
+        .stWarning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1)) !important;
+            color: #d97706 !important;
+            border: 1px solid #f59e0b !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.1) !important;
+            padding: 1rem !important;
+        }
+        
+        .stError {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1)) !important;
+            color: #dc2626 !important;
+            border: 1px solid #ef4444 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1) !important;
+            padding: 1rem !important;
+        }
+        
+        /* Expanders with gradient styling - LIGHT THEME */
         .streamlit-expanderHeader {
-            background: var(--tertiary-bg) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px !important;
+            background: linear-gradient(145deg, #f8faff, #ffffff) !important;
+            color: #2c3e50 !important;
+            border: 1px solid #e8ecf7 !important;
+            border-radius: 12px !important;
             font-weight: 500 !important;
+            font-family: 'Inter', sans-serif !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .streamlit-expanderHeader:hover {
+            background: linear-gradient(145deg, #f0f3ff, #f8faff) !important;
+            border-color: #667eea !important;
         }
         
         .streamlit-expanderContent {
-            background: var(--secondary-bg) !important;
-            border: 1px solid var(--border-color) !important;
+            background: linear-gradient(145deg, #ffffff, #f8faff) !important;
+            border: 1px solid #e8ecf7 !important;
             border-top: none !important;
-            border-radius: 0 0 8px 8px !important;
+            border-radius: 0 0 12px 12px !important;
+            color: #1e293b !important;
         }
         
-        /* Code blocks */
+        /* Code blocks with enhanced styling - LIGHT THEME */
         .stCode {
-            background: var(--tertiary-bg) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px !important;
-            color: var(--text-primary) !important;
+            background: linear-gradient(145deg, #f1f5f9, #ffffff) !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 12px !important;
+            color: #1e293b !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
         }
         
-        /* Scrollbar */
+        /* Responsive design */
+        @media (max-width: 768px) {
+            section[data-testid="stSidebar"] {
+                width: 320px !important;
+                min-width: 320px !important;
+            }
+            
+            section[data-testid="stSidebar"] > div:first-child {
+                width: 320px !important;
+                min-width: 320px !important;
+            }
+            
+            .main-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .main-header p {
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* Animation keyframes */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animated {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        /* Enhanced scrollbar - Theme adaptive */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         
         ::-webkit-scrollbar-track {
-            background: var(--secondary-bg);
+            background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
             border-radius: 4px;
         }
         
         ::-webkit-scrollbar-thumb {
-            background: var(--accent-color);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 4px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #1D4ED8;
+            background: linear-gradient(135deg, #5a72e8, #6d42a0);
         }
         
-        /* Caption text */
-        .caption {
-            color: var(--text-muted) !important;
-            font-size: 0.8rem !important;
-            font-style: italic !important;
-        }
-        
-        /* Loading spinner */
-        .stSpinner {
-            color: var(--accent-color) !important;
-        }
-        
-        /* Markdown content */
-        .markdown-text-container {
-            color: var(--text-primary) !important;
-        }
-        
-        /* Links */
-        a {
-            color: var(--accent-color) !important;
-            text-decoration: none !important;
-        }
-        
-        a:hover {
-            color: #1D4ED8 !important;
-            text-decoration: underline !important;
-        }
-        
-        /* Custom gradient background for the main title area */
-        .title-container {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(29, 78, 216, 0.1) 100%) !important;
-            border-radius: 12px !important;
-            padding: 1rem !important;
-            margin-bottom: 2rem !important;
-            border: 1px solid rgba(59, 130, 246, 0.2) !important;
+        /* Dark theme scrollbar */
+        @media (prefers-color-scheme: dark) {
+            ::-webkit-scrollbar-track {
+                background: linear-gradient(145deg, #1f2937, #111827);
+                border-radius: 4px;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+                background: linear-gradient(135deg, #4c1d95, #6366f1);
+                border-radius: 4px;
+            }
+            
+            ::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(135deg, #3730a3, #4338ca);
+            }
         }
     </style>
     """, unsafe_allow_html=True)
     
+    # Initialize session state and setup sidebar
     initialize_session_state()
     db_uri = setup_sidebar()
     
-    # Wrap title in custom container
-    st.markdown('<div class="title-container">', unsafe_allow_html=True)
-    st.title("🤖 SQL Database Chat Agent")
-    st.markdown("Ask questions about your database in natural language!")
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Enhanced title with current model display
+    current_model = GROQ_MODELS[st.session_state.selected_model]
+    
+    st.markdown("""
+    <div class="main-header animated">
+        <h1>🤖 SQL Database Chat Agent</h1>
+        <p>Transform natural language into powerful SQL queries with advanced AI</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Current model info
+    st.markdown(f"""
+    <div class="step-container animated">
+        <strong>🧠 Currently using:</strong> {st.session_state.selected_model}<br>
+        <small>{current_model['description']} • {current_model['speed']} • {current_model['cost']} • Context: {current_model['context']}</small>
+    </div>
+    """, unsafe_allow_html=True)
     
     if not st.session_state.db_connected:
+        # Use proper streamlit info message instead of custom HTML
         st.info("👈 Please configure your database connection in the wider sidebar to start chatting.")
         
-        st.markdown("""
-        ### How to use:
-        1. **Configure Database**: Upload a SQLite file or enter MySQL credentials in the sidebar
-        2. **View Schema**: Check the database tables and columns in the sidebar
-        3. **Try Examples**: Click example queries in the sidebar to execute them immediately
-        4. **Ask Questions**: Use the chat input below to ask natural language questions
-        5. **Get Answers**: The AI will generate SQL queries and provide answers
+        # Use proper markdown without HTML tags for text content
+        st.markdown(f"""
+        ### 🚀 How to use this SQL Chat Agent:
+        
+        **1. Select AI Model:** Choose from {len(GROQ_MODELS)} different models in the sidebar (currently: **{st.session_state.selected_model}**)
+        
+        **2. Configure Database:** Upload a SQLite file or enter MySQL credentials in the sidebar
+        
+        **3. View Schema:** Check the database tables and columns in the sidebar
+        
+        **4. Try Examples:** Click example queries in the sidebar to execute them immediately
+        
+        **5. Ask Questions:** Use the chat input below to ask natural language questions
+        
+        **6. Get Answers:** The AI will generate SQL queries and provide detailed answers
+        
+        ### ✅ Perfect Chat Message Visibility:
+        This app now features **high-contrast text in all chat messages** with dark text on light colored backgrounds in light theme, and light text on dark colored backgrounds in dark theme for perfect readability!
         """)
         return
     
@@ -972,8 +1424,8 @@ def main():
         for message in st.session_state.messages:
             display_chat_message(message)
     
-    # Chat input at the bottom
-    if prompt := st.chat_input("Ask a question about your database..."):
+    # Chat input at the bottom with model info
+    if prompt := st.chat_input(f"Ask a question about your database... (using {st.session_state.selected_model})"):
         process_query(prompt)
         st.rerun()
 

@@ -42,3 +42,6 @@ beautifulsoup4
 validators==0.28.1   # For URL validation in Streamlit forms
 youtube_transcript_api  # Fetch YouTube video transcripts when available
 unstructured   # Web/HTML article content extraction
+
+## math tools
+numexpr
