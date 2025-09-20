@@ -41,7 +41,4 @@ beautifulsoup4
 ## text summarization
 validators==0.28.1   # For URL validation in Streamlit forms
 youtube_transcript_api  # Fetch YouTube video transcripts when available
-pypdf   # PDF parsing and text extraction
 unstructured   # Web/HTML article content extraction
-openai   # OpenAI / LangChain model integrations
-tiktoken   # Token counting & text chunking for LLMs
