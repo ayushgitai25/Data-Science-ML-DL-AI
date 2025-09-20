@@ -1,39 +1,47 @@
-langchain
-langchain-community
-ipykernel
-python-dotenv
-pypdf ## for PDF Based Loader
-bs4 ## for Web Based Loader
-arxiv
-PyMuPDF ## for Arxiv Loader
+# Core LangChain
+langchain==0.3.27
+langchain-core==0.3.76
+langchain-community==0.3.29
+langchain-text-splitters==0.3.11
+
+# LLM Providers / Integrations
+langchain-openai==0.3.33
+langchain-google-genai==2.1.12
+langchain-ollama==0.3.8
+langchain-groq==0.3.8
+langchain-huggingface==0.3.1
+langchain-chroma
+
+# Vector stores / embeddings
+chromadb
+faiss-cpu
+sentence-transformers
+huggingface_hub[hf_xet]
+
+# Document loaders & Tools
+pypdf
+PyMuPDF
 wikipedia
-
-langchain-text-splitters
-
-langchain-openai  ## Paid OpenAI
-langchain-google-genai ## Gemini Free one
-langchain-ollama ## Ollama Open Source
-langchain-groq ## Groq Open Source
-langchain-core ## For HumanMessage, SystemMessage
-
-chromadb ## vector store
-langchain_chroma
-
-sentence_transformers ## for Hugging Face
-langchain_huggingface
-huggingface_hub[hf_xet] ## for embeddings using Large HG Models
-
-faiss-cpu ## for vectorstore
-
-beautifulsoup4
-
-streamlit
-
-fastapi==0.110.0 ## for LangServe
-langserve[all]
-pydantic==2.7.1
-
-arxiv  ## for tools
+bs4
+arxiv
 duckduckgo-search
 
-pymysql ## for SQL Database
+# Web / app frameworks
+streamlit
+fastapi==0.110.0
+langserve[all]
+
+# Misc / utilities
+ipykernel
+python-dotenv
+pydantic>=2.7.4,<3.0.0
+pymysql
+beautifulsoup4
+
+## text summarization
+validators==0.28.1
+youtube_transcript_api
+pypdf
+unstructured
+openai
+tiktoken
