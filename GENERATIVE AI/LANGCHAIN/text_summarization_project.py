@@ -62,10 +62,39 @@ except ImportError:
 from dotenv import load_dotenv
 load_dotenv()
 
-# Ensure GROQ_API_KEY is available
-if not os.getenv('GROQ_API_KEY'):
-    st.error("GROQ_API_KEY not found in environment variables. Please check your .env file.")
-    st.stop()
+# Initialize session state for API key if not exists
+if 'groq_api_key' not in st.session_state:
+    st.session_state.groq_api_key = os.getenv('GROQ_API_KEY', '')
+
+# Check if API key is available
+if not st.session_state.groq_api_key:
+    st.warning("⚠️ Please enter your Groq API key to continue")
+    
+    # Create a form for API key input
+    with st.form("api_key_form"):
+        api_key_input = st.text_input(
+            "🔑 Enter your Groq API Key",
+            type="password",
+            placeholder="gsk_...",
+            help="Get your free API key from https://console.groq.com/keys"
+        )
+        submitted = st.form_submit_button("Set API Key")
+        
+        if submitted and api_key_input:
+            st.session_state.groq_api_key = api_key_input
+            # Set it in environment for the current session
+            os.environ['GROQ_API_KEY'] = api_key_input
+            st.success("✅ API Key set successfully!")
+            st.rerun()
+        elif submitted and not api_key_input:
+            st.error("❌ Please enter a valid API key")
+    
+    st.stop()  # Stop execution until API key is provided
+
+# If we reach here, API key is available
+# Set it in environment if it was loaded from session state
+if st.session_state.groq_api_key:
+    os.environ['GROQ_API_KEY'] = st.session_state.groq_api_key
 
 # Page configuration with custom theme
 st.set_page_config(

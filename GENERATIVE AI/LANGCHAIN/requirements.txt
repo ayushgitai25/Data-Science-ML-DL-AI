@@ -41,7 +41,14 @@ beautifulsoup4
 ## text summarization
 validators==0.28.1   # For URL validation in Streamlit forms
 youtube_transcript_api  # Fetch YouTube video transcripts when available
-unstructured   # Web/HTML article content extraction
+pytube
+unstructured   # Web/HTML article content extraction **IMPORTANT**
 
 ## math tools
 numexpr
+
+## Vecotr DB for PDF Query RAG
+cassio
+datasets
+tiktoken
+PyPDF2
