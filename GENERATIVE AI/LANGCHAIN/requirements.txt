@@ -25,6 +25,7 @@ wikipedia
 bs4
 arxiv
 duckduckgo-search
+ddgs
 
 # Web / app frameworks
 streamlit
