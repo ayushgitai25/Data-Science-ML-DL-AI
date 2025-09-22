@@ -1,0 +1,38 @@
+# How to Deploy on Streamlit Cloud
+
+1. Add secrets in your app code (app.py):
+
+   import os
+   import streamlit as st
+
+   groq_api_key = st.secrets.get("GROQ_API_KEY", os.getenv("GROQ_API_KEY", ""))
+   if not groq_api_key:
+       st.error("❌ GROQ_API_KEY is missing! Please set it in Streamlit secrets or your environment.")
+       st.stop()
+
+   # Set environment variable for libraries that rely on it
+   os.environ["GROQ_API_KEY"] = groq_api_key
+
+2. Create a local secrets file for testing:
+
+   - File: .streamlit/secrets.toml
+   - Content:
+     GROQ_API_KEY = "your_local_groq_key_here"
+   - Add .streamlit/secrets.toml to .gitignore so it is not pushed to GitHub.
+
+3. Push your project files to a Git repository:
+
+   - Include app.py, requirements.txt, and other necessary files
+   - Exclude secrets.toml
+
+4. Set secrets on Streamlit Cloud:
+
+   - Go to your app dashboard on Streamlit Cloud
+   - Click "Advanced Settings" → "Secrets"
+   - Add a new secret:
+     Name: GROQ_API_KEY
+     Value: "your_real_groq_key_here"
+
+5. Deploy the app!
+
+WHENEVER YOU WANT TO CHANGE ANYTHING, JUST PUSH IN YOUR ACTUAL REPO, AND THOSE CHANGES WILL BY SYNCED TO APP AUTOMATICALLY.
