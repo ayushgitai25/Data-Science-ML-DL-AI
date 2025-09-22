@@ -1,6 +1,18 @@
 ===========================
 AI Document Summarizer - Hugging Face Spaces Deployment Guide
 ===========================
+Add secrets in your app code (app.py):
+
+   import os
+   import streamlit as st
+
+   groq_api_key = st.secrets.get("GROQ_API_KEY", os.getenv("GROQ_API_KEY", ""))
+   if not groq_api_key:
+       st.error("❌ GROQ_API_KEY is missing! Please set it in Streamlit secrets or your environment.")
+       st.stop()
+
+   # Set environment variable for libraries that rely on it
+
 
 1. Repository Preparation
 -------------------------
