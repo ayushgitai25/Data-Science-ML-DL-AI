@@ -39,7 +39,7 @@ def hybrid_search(query, top_k=10, alpha=0.5):
     dense_results = dense_index.search(embed(query), top_k)
     sparse_results = sparse_index.search(vectorize(query), top_k)
     return fuse(dense_results, sparse_results, alpha)
-
+```
 
 ## How It Works
 
