@@ -56,3 +56,8 @@ PyPDF2
 
 # CodeLlama Project
 gradio==5.25.2
+
+## Pinecone
+pinecone
+pinecone-text
+pinecone-notebooks
