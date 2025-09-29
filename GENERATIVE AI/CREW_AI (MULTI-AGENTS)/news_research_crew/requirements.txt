@@ -1,0 +1,22 @@
+crewai[tools]
+requests
+beautifulsoup4
+python-dotenv
+pydantic
+
+# LLM Dependencies (all included for switching)
+google-generativeai
+langchain-google-genai
+ollama
+langchain-community
+
+duckduckgo-search
+ddgs
+
+fastapi
+uvicorn
+python-multipart
+jinja2
+
+streamlit
+plotly
