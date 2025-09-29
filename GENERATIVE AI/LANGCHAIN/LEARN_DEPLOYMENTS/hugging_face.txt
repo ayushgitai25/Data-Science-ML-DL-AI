@@ -85,6 +85,7 @@ ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.addres
 4. GitHub Actions Workflow
 --------------------------
 Create file: .github/workflows/main.yml
+
 name: Sync to Hugging Face hub
 on:
   push:
