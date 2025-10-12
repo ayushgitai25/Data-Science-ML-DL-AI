@@ -150,10 +150,10 @@ CREATE (EverythingEverywhere:Movie {
 ## 3️⃣ Creating Relationships
 
 Actor to Movie Relationship
-
+```cypher
 CREATE (Sydney)-[:ACTED_IN]->(Euphoria);
 CREATE (Sydney)-[:ACTED_IN]->(EverythingEverywhere);
-
+```
 - (Sydney) → actor node.
 
 - -[:ACTED_IN]-> → relationship type with direction.
@@ -183,6 +183,38 @@ MATCH (Sydney:Actor {name: "Sydney Sweeney"})-[:ACTED_IN]->(m:Movie)
 RETURN Sydney.name AS Actor, m.title AS Movie, m.released AS Year, m.genre AS Genre;
 ```
 
+5️⃣ Updating Nodes and Relationships
 
+Update Node Properties
+
+```cypher
+MATCH (Sydney:Actor {name: "Sydney Sweeney"})
+SET Sydney.dob = "1997-09-11"
+RETURN Sydney;
+```
+- MATCH finds the node.
+
+- SET updates the property (dob) of the node.
+
+Update Relationship Properties
+```cypher
+MATCH (Sydney:Actor {name: "Sydney Sweeney"})-[r:ACTED_IN]->(m:Movie {title: "Euphoria"})
+SET r.role = "Lead Actress"
+RETURN r;
+```
+- Adds a new property role to the ACTED_IN relationship.
+
+## 6️⃣ Deleting Nodes and Relationships
+
+Delete a Relationship
+```cypher
+MATCH (Sydney:Actor)-[r:ACTED_IN]->(m:Movie {title: "Euphoria"})
+DELETE r;
+```
+Delete a Node (with all its relationships)
+```cypher
+MATCH (Sydney:Actor {name: "Sydney Sweeney"})
+DETACH DELETE Sydney;
+```
 
 
