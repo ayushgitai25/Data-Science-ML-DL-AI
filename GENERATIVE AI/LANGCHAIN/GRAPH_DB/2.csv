@@ -1,0 +1,6 @@
+userId1,userId2,type
+1,2,FRIEND
+1,3,LIKES
+2,4,FRIEND
+3,5,LIKES
+4,5,FRIEND
