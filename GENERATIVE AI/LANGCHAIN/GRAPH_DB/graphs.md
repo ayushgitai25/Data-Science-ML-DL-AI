@@ -218,3 +218,160 @@ DETACH DELETE Sydney;
 ```
 
 
+# Example using CSV data uploading in Neo4j
+## 📘 Neo4j Graph Creation Using CSV Files
+
+This guide explains how to build a Neo4j graph using three CSV files — `1.csv`, `2.csv`, and `3.csv`.  
+Each file represents a different entity or relationship in our social network example.
+
+---
+
+## 🧩 1. CSV Files Overview
+
+### **1.csv — Users**
+Contains basic information about users.
+
+| Column | Description |
+|---------|--------------|
+| userId  | Unique ID for each user |
+| name    | User’s name |
+| age     | User’s age |
+| city    | User’s city |
+
+Example:
+```cs
+userId,name,age,city
+1,Ayush,28,New Delhi
+2,Emma,34,London
+3,Liam,25,New York
+```
+
+### 2.csv — Relationships
+Defines the connections between users such as FRIEND or LIKES.
+| Column  | Description                        |
+| ------- | ---------------------------------- |
+| userId1 | Source user                        |
+| userId2 | Target user                        |
+| type    | Relationship type (FRIEND / LIKES) |
+
+Example:
+```cs
+userId1,userId2,type
+1,2,FRIEND
+1,3,LIKES
+```
+
+### 3.csv — Posts
+Represents posts made by users.
+
+| Column    | Description                         |
+| --------- | ----------------------------------- |
+| postId    | Unique post identifier              |
+| content   | Post content                        |
+| userId    | ID of the user who created the post |
+| timestamp | Time of creation                    |
+
+Example:
+```cs
+postId,content,userId,timestamp
+1,Hello world!,1,2025-10-12 10:00:00
+```
+
+## ⚙️ 2. Load Data in Neo4j
+Step 1 — Create User Nodes (1.csv)
+```cypher
+LOAD CSV WITH HEADERS FROM 'file:///1.csv' AS row
+CREATE (u:User {userId: row.userId, name: row.name, age: toInteger(row.age), city: row.city});
+```
+## Step 2 — Create Relationships Between Users (2.csv)
+```cypher
+LOAD CSV WITH HEADERS FROM 'file:///2.csv' AS row
+MATCH (a:User {userId: row.userId1})
+MATCH (b:User {userId: row.userId2})
+CREATE (a)-[:RELATION {type: row.type}]->(b);
+```
+
+## Step 3 — Connect Posts to Users (3.csv)
+```cypher
+LOAD CSV WITH HEADERS FROM 'file:///3.csv' AS row
+MATCH (u:User {userId: row.userId})
+CREATE (p:Post {postId: row.postId, content: row.content, timestamp: datetime(row.timestamp)})
+CREATE (u)-[:POSTED]->(p);
+```
+
+## ✅ 3. Verify the Graph
+
+To visualize or verify all created nodes and relationships:
+```cypher
+MATCH (n) RETURN n;
+```
+
+Or to view the connections specifically:
+```cypher
+MATCH (u:User)-[r]->(x) RETURN u, r, x;
+```
+
+## 🧠 Summary
+
+1.csv → Creates User nodes
+
+2.csv → Adds FRIEND / LIKES relationships between users
+
+3.csv → Connects User nodes to their Post nodes
+Together, these files build a small but functional social graph in Neo4j.
+
+
+# 💡 Common Neo4j Questions & Answers (Cypher Examples)
+
+---
+
+### 🧭 1. How to view all users?
+```cypher
+MATCH (u:User)
+RETURN u;
+```
+
+### 🤝 2. How to see all relationships between users?
+```cypher
+MATCH (a:User)-[r:RELATION]->(b:User)
+RETURN a.name AS From, r.type AS Relationship, b.name AS To;
+```
+
+### 📝 3. How to view all posts and their authors?
+```cypher
+MATCH (u:User)-[:POSTED]->(p:Post)
+RETURN u.name AS Author, p.content AS Post, p.timestamp AS Time;
+```
+
+### 🔗 4. How to find who are friends of a specific user (e.g., Ayush)?
+```cypher
+MATCH (u:User {name: "Ayush"})-[:RELATION {type: "FRIEND"}]->(friend:User)
+RETURN friend.name AS Friend;
+```
+
+## ❤️ 5. Who does a user “LIKE”?
+```cypher
+MATCH (u:User {name: "Ayush"})-[:RELATION {type: "LIKES"}]->(liked:User)
+RETURN liked.name AS LikedUser;
+```
+
+## 🧱 6. How to delete all nodes and relationships (reset database)?
+```cypher
+MATCH (n)
+DETACH DELETE n;
+```
+
+## 📊 7. How to see how many posts each user made?
+```cypher
+MATCH (u:User)-[:POSTED]->(p:Post)
+RETURN u.name AS User, COUNT(p) AS PostCount;
+```
+
+## 🕵️ 8. How to find users who have not made any posts?
+```cypher
+MATCH (u:User)
+WHERE NOT (u)-[:POSTED]->(:Post)
+RETURN u.name AS UserWithoutPosts;
+```
+
+
