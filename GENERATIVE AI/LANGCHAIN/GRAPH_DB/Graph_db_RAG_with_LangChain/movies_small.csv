@@ -1,0 +1,21 @@
+movieId,title,released,actors,director,genres,imdbRating
+1,Inception,2010,Leonardo DiCaprio|Joseph Gordon-Levitt|Ellen Page,Christopher Nolan,Sci-Fi|Action|Thriller,8.8
+2,The Dark Knight,2008,Christian Bale|Heath Ledger|Aaron Eckhart,Christopher Nolan,Action|Crime|Drama,9.0
+3,Interstellar,2014,Matthew McConaughey|Anne Hathaway|Jessica Chastain,Christopher Nolan,Sci-Fi|Adventure|Drama,8.6
+4,Avatar,2009,Sam Worthington|Zoe Saldana|Sigourney Weaver,James Cameron,Sci-Fi|Adventure|Action,7.8
+5,Titanic,1997,Leonardo DiCaprio|Kate Winslet|Billy Zane,James Cameron,Romance|Drama,7.9
+6,The Matrix,1999,Keanu Reeves|Laurence Fishburne|Carrie-Anne Moss,Lana Wachowski|Lilly Wachowski,Sci-Fi|Action,8.7
+7,The Godfather,1972,Marlon Brando|Al Pacino|James Caan,Francis Ford Coppola,Crime|Drama,9.2
+8,The Shawshank Redemption,1994,Tim Robbins|Morgan Freeman|Bob Gunton,Frank Darabont,Drama,9.3
+9,Pulp Fiction,1994,John Travolta|Uma Thurman|Samuel L. Jackson,Quentin Tarantino,Crime|Drama,8.9
+10,Fight Club,1999,Brad Pitt|Edward Norton|Helena Bonham Carter,David Fincher,Drama|Thriller,8.8
+11,Forrest Gump,1994,Tom Hanks|Robin Wright|Gary Sinise,Robert Zemeckis,Drama|Romance,8.8
+12,Gladiator,2000,Russell Crowe|Joaquin Phoenix|Connie Nielsen,Ridley Scott,Action|Drama,8.5
+13,The Avengers,2012,Robert Downey Jr.|Chris Evans|Scarlett Johansson,Joss Whedon,Action|Adventure|Sci-Fi,8.0
+14,Iron Man,2008,Robert Downey Jr.|Gwyneth Paltrow|Jeff Bridges,Jon Favreau,Action|Adventure|Sci-Fi,7.9
+15,The Social Network,2010,Jesse Eisenberg|Andrew Garfield|Justin Timberlake,David Fincher,Biography|Drama,7.7
+16,Parasite,2019,Song Kang-ho|Lee Sun-kyun|Cho Yeo-jeong,Bong Joon-ho,Thriller|Drama,8.6
+17,Joker,2019,Joaquin Phoenix|Robert De Niro|Zazie Beetz,Todd Phillips,Crime|Drama|Thriller,8.4
+18,Avengers: Endgame,2019,Robert Downey Jr.|Chris Evans|Mark Ruffalo,Anthony Russo|Joe Russo,Action|Adventure|Sci-Fi,8.4
+19,The Lion King,1994,Matthew Broderick|Jeremy Irons|James Earl Jones,Roger Allers|Rob Minkoff,Animation|Adventure|Drama,8.5
+20,The Silence of the Lambs,1991,Jodie Foster|Anthony Hopkins|Scott Glenn,Jonathan Demme,Crime|Thriller,8.6
