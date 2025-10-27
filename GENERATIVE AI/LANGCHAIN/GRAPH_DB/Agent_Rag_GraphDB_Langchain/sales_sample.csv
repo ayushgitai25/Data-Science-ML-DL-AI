@@ -1,0 +1,5 @@
+customer_id,customer_name,product_name,amount,date
+1,Alice,Book,25.50,2025-01-01
+2,Bob,Laptop,1200.00,2025-01-02
+1,Alice,Book,30.00,2025-01-03
+3,Charlie,Phone,800.50,2025-01-04

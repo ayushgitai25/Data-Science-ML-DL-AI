@@ -4,3 +4,5 @@ __pycache__/
 .env
 .streamlit/
 venv-crewai
+graph-venv
+.venv-graph
