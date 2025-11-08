@@ -25,5 +25,5 @@
 
 - Then push using:
   
-  - git remote set-url origin https://<TOKEN>@github.com/ayushgitai25/Data-Science-ML-DL-AI.git
+  - git remote set-url origin https://**<TOKEN>**@github.com/ayushgitai25/Data-Science-ML-DL-AI.git
   - git push -u origin main
