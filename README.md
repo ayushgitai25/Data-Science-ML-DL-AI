@@ -13,7 +13,7 @@
 ### git push -u origin main : It tells Git:
 #### "Hey, from now on, my local branch main should track the remote branch main on origin."
 
-## On Colab:
+## On Google Colab:
 - git config --global user.email "you@example.com"
 - git config --global user.name "Your Name"
 ### All steps remain the same, just you may need to use a token(classic) and the use it like:
