@@ -1,3 +1,5 @@
+## **Always: app.py => OUR BACKEND CODE.**
+
 ===========================
 AI Document Summarizer - Hugging Face Spaces Deployment Guide
 ===========================
