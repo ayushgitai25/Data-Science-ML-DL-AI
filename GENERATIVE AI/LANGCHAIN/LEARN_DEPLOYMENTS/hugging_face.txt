@@ -1,4 +1,18 @@
-## **Always: app.py => OUR BACKEND CODE.**
+THING TO CHECK BEFIRE STARTING:
+## **Always: app.py => OUR BACKEND CODE.** streamlit one will get executed seperately but that's not our app.py.
+## In app.py: add CORS Middleware:
+         # ✅ Add CORS middleware with proper settings
+                  app.add_middleware(
+                      CORSMiddleware,
+                      allow_origins=["*"],  # In production, specify your domains
+                      allow_credentials=True,
+                      allow_methods=["*"],
+                      allow_headers=["*"],
+                  )
+## Dockefile will have multi command seperated by '&'. EXPOSE both ports.
+## Add this line in command so streamlit/UI can allow upload media: --server.enableXsrfProtection=false
+## COMMAND is like: 
+            CMD ["bash", "-c", "uvicorn app:app --host 0.0.0.0 --port 8000 --log-level info & streamlit run frontend_app.py --server.port=7860 --server.address=0.0.0.0 --server.headless=true --browser.gatherUsageStats=false --server.enableXsrfProtection=false"]
 
 ===========================
 AI Document Summarizer - Hugging Face Spaces Deployment Guide
