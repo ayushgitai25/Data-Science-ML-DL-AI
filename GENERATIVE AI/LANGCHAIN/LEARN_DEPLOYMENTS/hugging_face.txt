@@ -1,4 +1,4 @@
-THING TO CHECK BEFIRE STARTING:
+THING TO CHECK BEFoRE DEPLOYING:
 ## **Always: app.py => OUR BACKEND CODE.** streamlit one will get executed seperately but that's not our app.py.
 ## In app.py: add CORS Middleware:
          # ✅ Add CORS middleware with proper settings
