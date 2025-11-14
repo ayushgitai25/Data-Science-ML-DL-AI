@@ -1,4 +1,5 @@
-THING TO CHECK BEFoRE DEPLOYING:
+THING TO CHECK BEFORE DEPLOYING:
+=================================
 ## **Always: app.py => OUR BACKEND CODE.** streamlit one will get executed seperately but that's not our app.py.
 ## In app.py: add CORS Middleware:
          # ✅ Add CORS middleware with proper settings
@@ -13,6 +14,42 @@ THING TO CHECK BEFoRE DEPLOYING:
 ## Add this line in command so streamlit/UI can allow upload media: --server.enableXsrfProtection=false
 ## COMMAND is like: 
             CMD ["bash", "-c", "uvicorn app:app --host 0.0.0.0 --port 8000 --log-level info & streamlit run frontend_app.py --server.port=7860 --server.address=0.0.0.0 --server.headless=true --browser.gatherUsageStats=false --server.enableXsrfProtection=false"]
+## Dockerfile:
+FROM python:3.10-slim
+
+# Install bash, FFmpeg, and essentials (for HF Spaces compatibility and audio processing)
+RUN apt-get update && apt-get install -y \
+    bash \
+    curl \
+    procps \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user (HF default UID 1000)
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
+
+# Set working directory
+WORKDIR $HOME/app
+
+# Copy requirements and install dependencies as user
+COPY --chown=user:user requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Copy application files with ownership
+COPY --chown=user:user . .
+
+# Create data directory with permissions
+RUN mkdir -p data && chmod 755 data
+
+EXPOSE 7860 8000
+
+# Run as JSON array (exec form) - no shell parsing issues
+CMD ["bash", "-c", "uvicorn app:app --host 0.0.0.0 --port 8000 --log-level info & streamlit run frontend_app.py --server.port=7860 --server.address=0.0.0.0 --server.headless=true --browser.gatherUsageStats=false --server.enableXsrfProtection=false"]
+
+
 
 ===========================
 AI Document Summarizer - Hugging Face Spaces Deployment Guide
